@@ -1,9 +1,0 @@
-name: Projects
-source:
-  - icon: fa fa-cog
-    name: project 1 eda change
-    description: Project 1 EDA
-    url: prject-1_EDA.Rmd
-    
-  - icon: fa fa-cog
-    description: Project 2 modeling 

@@ -1,6 +1,6 @@
 baseurl = "/"
 languageCode = "en-US"
-title = "Chris Turner"
+title = "Matt Gibson"
 # Enable comments by entering your Disqus shortname
 disqusShortname = ""
 # Enable Google Analytics by entering your tracking code
@@ -13,16 +13,15 @@ theme = "hugo-sustain"
 [params]
   avatar = "Picture1.jpg"
   author = "Matt Gibson"
-  description = "WHERE IS THIS"
+  description = "Describe your website"
 
   # Custom assets can be linked with their paths relative to static/
   custom_css = []
   custom_js  = []
 
 [params.social]
-  Email         = "mattg314@gmail.com"
-  Twitter       = "Matt_gib16"
-  LinkedIn      = "username"
+  Email       = "mattg314@gmail.com"
+  Twitter     = "username"
 
 ## Main Menu
 [[menu.main]]

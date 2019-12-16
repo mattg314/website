@@ -5,15 +5,15 @@
     "dirty" : false,
     "encoding" : "UTF-8",
     "folds" : "",
-    "hash" : "0",
+    "hash" : "2634872723",
     "id" : "F23F1547",
-    "lastKnownWriteTime" : 1576444210,
-    "last_content_update" : 1576444210730,
+    "lastKnownWriteTime" : 1576460747,
+    "last_content_update" : 1576460747434,
     "path" : "~/Desktop/frustrated/config.toml",
     "project_path" : "config.toml",
     "properties" : {
-        "cursorPosition" : "24,28",
-        "scrollLine" : "15"
+        "cursorPosition" : "14,23",
+        "scrollLine" : "0"
     },
     "read_only" : false,
     "read_only_alternatives" : [

@@ -1,9 +1,9 @@
 <?xml version="1.0" encoding="utf-8" standalone="yes"?>
 <rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
   <channel>
-    <title>Blogs on Chris Turner</title>
+    <title>Blogs on Matt Gibson</title>
     <link>/blog/</link>
-    <description>Recent content in Blogs on Chris Turner</description>
+    <description>Recent content in Blogs on Matt Gibson</description>
     <generator>Hugo -- gohugo.io</generator>
     <language>en-US</language>
     <lastBuildDate>Thu, 23 Jul 2015 21:13:14 -0500</lastBuildDate>
@@ -65,6 +65,15 @@ Follow the following steps:
       <description>Move static content to static Jekyll has a rule that any directory not starting with _ will be copied as-is to the _site output. Hugo keeps all static content under static. You should therefore move it all there. With Jekyll, something that looked like
 ▾ &amp;lt;root&amp;gt;/ ▾ images/ logo.png  should become
 ▾ &amp;lt;root&amp;gt;/ ▾ static/ ▾ images/ logo.png  Additionally, you&#39;ll want any files that should reside at the root (such as CNAME) to be moved to static.</description>
+    </item>
+    
+    <item>
+      <title>Project 1: Exploratory Data Analysis</title>
+      <link>/blog/prject-1_eda/</link>
+      <pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate>
+      
+      <guid>/blog/prject-1_eda/</guid>
+      <description>With the recent federal legalization of sports gambling I believe that sports data will become increasingly important and relevant in successfully predicting outcomes of games. For this project I obtained NFL gambling and game data from kaggle.com. The first data set included data on individual games such as schedule year and date, stadium name, home team score, away team score, and spread. The second data set recorded weather related data for these same NFL games, which included temperature, precipitation, location, stadium type (open-air or dome) and much more.</description>
     </item>
     
   </channel>
