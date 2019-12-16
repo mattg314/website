@@ -19,8 +19,11 @@ nfl_stadiums <- read.csv("~/Downloads/nfl_stadiums.csv")
 
 
 ## Joinging and Wrangling the Data Sets
-```{R}
+```{R, include = FALSE}
 library(tidyverse)
+```
+
+```{R}
 spreadspoke_scores%>%left_join(nfl_stadiums, by=c("stadium"="stadium_name"))-> proj1_combined
 proj1_combined%>%select(-NAME,-STATION, -LATITUDE, -LONGITUDE,
 -stadium_capacity, -stadium_address, -stadium_open,-stadium_weather_station_code,
@@ -77,7 +80,7 @@ The summary statistics above did not show the variation I expected to see with c
 
 ## Plots
 
-```{R}
+```{R, echo = FALSE}
 proj1_combined%>%
   ggplot(aes(weather_detail,over_under_line, fill=over_under_hit))+
   geom_bar(stat = "summary")+  
