@@ -201,6 +201,9 @@ table(predictions=pred, truth=heart$target)%>%addmargins
 126/160
 ##PPV
 104/138
+```
+
+```{R, echo = FALSE}
 
 ##Density of log-odds graph
 heart <- heart%>%mutate(diagnosis = case_when(target==0 ~ "disease",
@@ -216,7 +219,10 @@ ROCplot<-ggplot(heart)+geom_roc(aes(d=target,m=probs), n.cuts=0)+
   geom_segment(aes(x=0,xend=1,y=0,yend=1),lty=2)+ ggtitle("ROC Plot")
 ROCplot
 calc_auc(ROCplot)
+```
 
+
+```{R}
 ##Cross Validation
 set.seed(1234)
 k=10 

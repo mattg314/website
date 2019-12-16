@@ -11,4 +11,4 @@ description: ''
 I am currently attending the University of Texas at Austin, where I will earn a Bachelor of Science and Arts degree in Biology with certificates in Pre-health and Forensic Science. I am on track to graduate in May 2020. 
 
 ## Skills 
-I have strong personal and leadership skills. I also have a basic skills in R-Studio.
+I have strong personal and leadership skills. I also have a basic skills in R-Studio and python.

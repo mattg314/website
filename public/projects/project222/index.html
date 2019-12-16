@@ -265,7 +265,7 @@ ggplot(aes(t))+geom_histogram(aes(y=..density..), bins=30)+
 <p><img src="/Projects/project222_files/figure-html/unnamed-chunk-3-1.png" width="768" style="display: block; margin: auto;" /></p>
 <pre class="r"><code> quantile(t,.975)</code></pre>
 <pre><code>##    97.5% 
-## 1.969173</code></pre>
+## 1.965706</code></pre>
 <pre class="r"><code> ##Randomization test
  rand_dist&lt;-vector()
 for(i in 1:5000){
@@ -275,7 +275,7 @@ rand_dist[i]&lt;-mean(new[new$sex==&quot;male&quot;,]$bps)-
  
 ##p-value
 mean(rand_dist&gt;1.961418 )*2</code></pre>
-<pre><code>## [1] 0.3768</code></pre>
+<pre><code>## [1] 0.3688</code></pre>
 <p>For the randomization test, I determined if there was a difference in patients’ mean initial resting blood pressure (initial.restbps) between sexes. The null hypothesis is that there is no difference in average initial resting blood pressure between males and females. The alternative hypothesis is that a difference does exist in average initial resting blood pressure between sexes. First I generated the null distribution of a t-test, which is then showed in the graph above. Next I took 5,000 random permutations of initial blood pressure readings and sexes. The p-value was determined by finding the the proportion of the null distribution that was above the 0.975 mark and multiplying this by two. This p-value equated to 0.362, which is not significant. Therefor, it can be concluded that there is no mean differnce in initial resting blood pressure between males and females.</p>
 </div>
 <div id="linear-regression" class="section level2">
@@ -376,7 +376,7 @@ samp_distn&lt;-replicate(5000, {
 samp_distn%&gt;%t%&gt;%as.data.frame%&gt;%summarize_all(sd)</code></pre>
 <pre><code>## (Intercept) initial.restbps_c sexmale
 initial.restbps_c:sexmale
-## 1 0.5942092 0.03186257 1.103241 0.05746379</code></pre>
+## 1 0.5909835 0.03186062 1.116718 0.05596125</code></pre>
 <p>This code chunk shows that there is little change in the estimate of standard errors after bootstrapping the data when compared to the standard errors of the original model and the robust standard error model.</p>
 </div>
 <div id="logistic-regression" class="section level2">
@@ -430,21 +430,7 @@ table(predictions=pred, truth=heart$target)%&gt;%addmargins</code></pre>
 <pre class="r"><code>##PPV
 104/138</code></pre>
 <pre><code>## [1] 0.7536232</code></pre>
-<pre class="r"><code>##Density of log-odds graph
-heart &lt;- heart%&gt;%mutate(diagnosis = case_when(target==0 ~ &quot;disease&quot;,
-                                              target==1 ~ &quot;no disease&quot;))
-heart$logit&lt;-predict(logit_fit) 
-ggplot(heart,aes(logit, fill=diagnosis))+geom_density(alpha=.3)+
-  geom_vline(xintercept=0,lty=2)+ggtitle(&quot;Density of log-odds vs Target Outcome&quot;)</code></pre>
-<p><img src="/Projects/project222_files/figure-html/unnamed-chunk-6-1.png" width="768" style="display: block; margin: auto;" /></p>
-<pre class="r"><code>##ROC Plot
-heart &lt;- heart%&gt;%select(-diagnosis)
-library(plotROC)
-ROCplot&lt;-ggplot(heart)+geom_roc(aes(d=target,m=probs), n.cuts=0)+
-  geom_segment(aes(x=0,xend=1,y=0,yend=1),lty=2)+ ggtitle(&quot;ROC Plot&quot;)
-ROCplot</code></pre>
-<p><img src="/Projects/project222_files/figure-html/unnamed-chunk-6-2.png" width="768" style="display: block; margin: auto;" /></p>
-<pre class="r"><code>calc_auc(ROCplot)</code></pre>
+<p><img src="/Projects/project222_files/figure-html/unnamed-chunk-7-1.png" width="768" style="display: block; margin: auto;" /><img src="/Projects/project222_files/figure-html/unnamed-chunk-7-2.png" width="768" style="display: block; margin: auto;" /></p>
 <pre><code>##   PANEL group       AUC
 ## 1     1    -1 0.8073562</code></pre>
 <pre class="r"><code>##Cross Validation

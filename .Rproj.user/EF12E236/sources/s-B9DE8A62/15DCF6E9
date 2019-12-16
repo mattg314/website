@@ -1,0 +1,25 @@
+{
+    "collab_server" : "",
+    "contents" : "",
+    "created" : 1576500709133.000,
+    "dirty" : false,
+    "encoding" : "UTF-8",
+    "folds" : "",
+    "hash" : "0",
+    "id" : "15DCF6E9",
+    "lastKnownWriteTime" : 1576500802,
+    "last_content_update" : 1576500802450,
+    "path" : "~/Desktop/frustrated/content/Projects/project222.Rmd",
+    "project_path" : "content/Projects/project222.Rmd",
+    "properties" : {
+        "cursorPosition" : "205,19",
+        "scrollLine" : "195"
+    },
+    "read_only" : false,
+    "read_only_alternatives" : [
+    ],
+    "relative_order" : 4,
+    "source_on_save" : false,
+    "source_window" : "",
+    "type" : "r_markdown"
+}
