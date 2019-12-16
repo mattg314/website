@@ -6,10 +6,21 @@
     <description>Recent content on Matt Gibson</description>
     <generator>Hugo -- gohugo.io</generator>
     <language>en-US</language>
-    <lastBuildDate>Sun, 15 Dec 2019 00:00:00 +0000</lastBuildDate>
+    <lastBuildDate>Mon, 16 Dec 2019 00:00:00 +0000</lastBuildDate>
     
 	<atom:link href="/index.xml" rel="self" type="application/rss+xml" />
     
+    
+    <item>
+      <title>Education</title>
+      <link>/resume/education/</link>
+      <pubDate>Mon, 16 Dec 2019 00:00:00 +0000</pubDate>
+      
+      <guid>/resume/education/</guid>
+      <description> Education I am currently attending the University of Texas at Austin, where I will earn a Bachelor of Science and Arts degree in Biology with certificates in Pre-health and Forensic Science. I am on track to graduate in May 2020.
+ Skills I have strong personal and leadership skills. I also have a basic skills in R-Studio.
+ </description>
+    </item>
     
     <item>
       <title>About me</title>

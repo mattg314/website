@@ -1,0 +1,8 @@
+name: Projects
+source:
+  - icon: fa fa-cog
+    description: project 1 exploratory data analysis!
+    Project 1: <a href="/prject-1_EDA/">Project 1</a>
+    
+  - icon: fa fa-cog
+    description: Project 2 modeling, infering and predicting!
