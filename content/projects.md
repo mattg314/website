@@ -8,4 +8,3 @@ tags:
 - projects
 title: Projects
 ---
-url: <a href="/prject-1_EDA/">Project 1</a>

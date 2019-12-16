@@ -1,0 +1,33 @@
+---
+title: Work Experience
+author: Matt Gibson
+date: '2019-12-15'
+slug: work-experience
+categories: []
+tags: []
+description: ''
+---
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Lost Creek Country Club
+  -Lifeguard
+  
+  -Summer 2015-present
+  
+## The County Line BBQ 
+  -Waiter
+  
+  -Summer 2018
+  
+## Independent
+  -Mass Marketing mailer preparation
+  
+  -Summer 2016, 2017
+  
+## Intership
+  -Interned at Neal Dental Group in Austin, Texas
+  
+  -Fall 2017
+

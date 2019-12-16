@@ -12,12 +12,51 @@
     
     
     <item>
+      <title>About me</title>
+      <link>/resume/about-me/</link>
+      <pubDate>Sun, 15 Dec 2019 00:00:00 +0000</pubDate>
+      
+      <guid>/resume/about-me/</guid>
+      <description>Hi, my name is Matt Gibson! I am currently a senior at the University of Texas at Austin studying biology. I was born and raised as a Longhorn here in Austin so attending UT had always been a dream of mine! I enjoy sports, both watching and playing, traveling and spending time with friends and family. I also have a two year old Golden Retriever named Nala! Here’s a picture of her eating whats left of a cupcake on her birthday:</description>
+    </item>
+    
+    <item>
+      <title>Community Service</title>
+      <link>/resume/community-service/</link>
+      <pubDate>Sun, 15 Dec 2019 00:00:00 +0000</pubDate>
+      
+      <guid>/resume/community-service/</guid>
+      <description>Riverbend Church -Volunteered as youth leader at Vacation Bible School
+ Westlake Hills Presbyterian Church -Volunteered for church mission trip to New Orleans - provided companionship and quality of life assistance to the elderly and individuals with special needs
+ Austin 10/20 Race -Volunteered for race support crew prior to and day of event
+ Youth Basketball Coach -Coached recreational youth basketball for the Westlake Youth Basketball Association (WYBA)</description>
+    </item>
+    
+    <item>
       <title>Here is some python stuff we learned!</title>
       <link>/blog/here-is-some-python-stuff-we-learned/</link>
       <pubDate>Sun, 15 Dec 2019 00:00:00 +0000</pubDate>
       
       <guid>/blog/here-is-some-python-stuff-we-learned/</guid>
-      <description> library(reticulate) </description>
+      <description>Regular Expressions! Towards the end of the semester, we learned about regular expressions, commonly refered to as regex. We can use regex to find patterns in strings using algorithms and functions such as re.findall. Regex can be applied in a biological context in many way. Below I will demontrate just one of these ways.
+ Restriction Enzyme Example Here is an example from one of our homeworks. Here, I used re.</description>
+    </item>
+    
+    <item>
+      <title>Work Experience</title>
+      <link>/resume/work-experience/</link>
+      <pubDate>Sun, 15 Dec 2019 00:00:00 +0000</pubDate>
+      
+      <guid>/resume/work-experience/</guid>
+      <description> Lost Creek Country Club -Lifeguard
+-Summer 2015-present
+ The County Line BBQ -Waiter
+-Summer 2018
+ Independent -Mass Marketing mailer preparation
+-Summer 2016, 2017
+ Intership -Interned at Neal Dental Group in Austin, Texas
+-Fall 2017
+ </description>
     </item>
     
     <item>
@@ -26,7 +65,7 @@
       <pubDate>Sun, 02 Oct 2016 22:55:05 -0400</pubDate>
       
       <guid>/projects/</guid>
-      <description>url: Project 1</description>
+      <description></description>
     </item>
     
     <item>

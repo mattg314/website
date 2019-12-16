@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>regex on Matt Gibson</title>
+    <link>/tags/regex/</link>
+    <description>Recent content in regex on Matt Gibson</description>
+    <generator>Hugo -- gohugo.io</generator>
+    <language>en-US</language>
+    <lastBuildDate>Sun, 15 Dec 2019 00:00:00 +0000</lastBuildDate>
+    
+	<atom:link href="/tags/regex/index.xml" rel="self" type="application/rss+xml" />
+    
+    
+    <item>
+      <title>Here is some python stuff we learned!</title>
+      <link>/blog/here-is-some-python-stuff-we-learned/</link>
+      <pubDate>Sun, 15 Dec 2019 00:00:00 +0000</pubDate>
+      
+      <guid>/blog/here-is-some-python-stuff-we-learned/</guid>
+      <description>Regular Expressions! Towards the end of the semester, we learned about regular expressions, commonly refered to as regex. We can use regex to find patterns in strings using algorithms and functions such as re.findall. Regex can be applied in a biological context in many way. Below I will demontrate just one of these ways.
+ Restriction Enzyme Example Here is an example from one of our homeworks. Here, I used re.</description>
+    </item>
+    
+  </channel>
+</rss>
