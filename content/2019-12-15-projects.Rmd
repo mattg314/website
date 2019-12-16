@@ -1,9 +1,0 @@
----
-title: projects
-output: html_notebook
----
-<p><em>
-In these projects, I utilized R and various R packages (including, but not limited to, ggplot, tidyverse, and dplyr) to perform data analysis and build predictive models.</em> <br></br></p>
-
-<center>
-<a href="/prject-1_EDA/">Project 1</a>

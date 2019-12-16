@@ -28,12 +28,12 @@
   </url>
   
   <url>
-    <loc>/categories/projects/</loc>
+    <loc>/tags/projects/</loc>
     <lastmod>2016-10-02T22:55:05-04:00</lastmod>
   </url>
   
   <url>
-    <loc>/tags/projects/</loc>
+    <loc>/categories/projects/</loc>
     <lastmod>2016-10-02T22:55:05-04:00</lastmod>
   </url>
   
@@ -43,16 +43,15 @@
   </url>
   
   <url>
-    <loc>/2019-12-15-projects.nb/</loc>
-    <priority>0</priority>
+    <loc>/projects/prject-1_eda/</loc>
   </url>
   
   <url>
-    <loc>/prject-1_eda/</loc>
+    <loc>/projects/project222/</loc>
   </url>
   
   <url>
-    <loc>/2019-12-15-projects/</loc>
+    <loc>/projects/</loc>
   </url>
   
 </urlset>

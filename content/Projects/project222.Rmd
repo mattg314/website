@@ -1,0 +1,270 @@
+---
+title: 'Project 2: Modeling, Testing, and Predicting'
+author: "Mattt Gibson, msg2669"
+date: '11/26/19'
+output:
+  pdf_document:
+    toc: yes
+  html_document:
+    toc: yes
+    toc_float:
+      collapsed: no
+      smooth_scroll: yes
+---
+
+```{r setup, include=FALSE}
+library(knitr)
+hook_output = knit_hooks$get('output')
+knit_hooks$set(output = function(x, options) {
+  # this hook is used only when the linewidth option is not NULL
+  if (!is.null(n <- options$linewidth)) {
+    x = knitr:::split_lines(x)
+    # any lines wider than n should be wrapped
+    if (any(nchar(x) > n)) x = strwrap(x, width = n)
+    x = paste(x, collapse = '\n')
+  }
+  hook_output(x, options)
+})
+
+knitr::opts_chunk$set(echo = TRUE, eval = TRUE,fig.align="center",warning=FALSE,message=FALSE,fig.width=8, fig.height=5, linewidth=60)
+options(tibble.width = 100,width = 100)
+
+class_diag<-function(probs,truth){
+  
+  tab<-table(factor(probs>.5,levels=c("FALSE","TRUE")),truth)
+  acc=sum(diag(tab))/sum(tab)
+  sens=tab[2,2]/colSums(tab)[2]
+  spec=tab[1,1]/colSums(tab)[1]
+  ppv=tab[2,2]/rowSums(tab)[2]
+
+  if(is.numeric(truth)==FALSE & is.logical(truth)==FALSE) truth<-as.numeric(truth)-1
+  
+  #CALCULATE EXACT AUC
+  ord<-order(probs, decreasing=TRUE)
+  probs <- probs[ord]; truth <- truth[ord]
+  
+  TPR=cumsum(truth)/max(1,sum(truth)) 
+  FPR=cumsum(!truth)/max(1,sum(!truth))
+  
+  dup<-c(probs[-1]>=probs[-length(probs)], FALSE)
+  TPR<-c(0,TPR[!dup],1); FPR<-c(0,FPR[!dup],1)
+  
+  n <- length(TPR)
+  auc<- sum( ((TPR[-1]+TPR[-n])/2) * (FPR[-1]-FPR[-n]) )
+
+  data.frame(acc,sens,spec,ppv,auc)
+}
+library(tidyverse)
+```
+
+
+## Introduction
+Heart disease is the leading cause of death in the U.S. Knowing this, I wanted to determine if heart disease could be pridcted based on a certain group of indicators. In an attempt to find an answer, I obtained a data set of patients from kaggle.com in order to build a model to predict heart disease based on a patients' symptoms when first admitted to the hospital. The dataset has 15 variables and 303 observations. The predictors I will focus most on are: age, sex, chest pain type (cp.type), patients initial resting blood pressure when admitted to the hospital (initial.restbps), cholesterol (chol), resting ECG results (restecg), maximum heart rate (thalach), excercise-induced angina (exang), and lastly oldpeak, which is defined on the kaggle dataset as ST depression induced by exercise relative to rest. In the dataset, the binary response variable called target is labeled 0 for no disease and 1 if a heart disease is present. In the following code I read in and organize the data set as well as recode the chest pain variable to a strings of categorical observations. 
+```{R}
+heart <- read.csv("~/Downloads/heart.csv")
+heart%>%rename(initial.restbps = trestbps) ->heart
+heart <- heart%>%mutate(cp.type = case_when(cp==0 ~ "asymptomatic",
+                                            cp==1 ~ "atypical angina",
+                                            cp==2 ~ "non-anginal pain", 
+                                            cp==3~ "typical angina")) 
+
+heart <- heart%>%mutate(target = case_when(target==0 ~ 1,
+                                            target==1 ~ 0)) 
+select<-dplyr::select
+heart <- heart%>%select(-cp)
+heart <- heart%>%select(age, sex, cp.type, everything())
+heart <- heart%>%mutate(diagnosis = case_when(target==0 ~ "no disease",
+                                              target==1 ~ "disease"))
+library(car)
+heart$sex<-recode(heart$sex, "0='male'")
+heart$sex<-recode(heart$sex, "1='female'")
+```
+
+
+## Manova
+```{R}
+covmats<-heart%>%group_by(sex)%>%do(covs=cov(.[4:13]))
+for(i in 1:3){print(covmats$covs[i])} ##testing for homogenity of covariances
+
+man2 <- manova(cbind(initial.restbps, chol, thalach, oldpeak)~cp.type, data=heart)
+summary(man2)
+summary.aov(man2)
+
+ pairwise.t.test(heart$initial.restbps,heart$cp.type,
+                p.adj="none")
+ pairwise.t.test(heart$thalach,heart$cp.type,
+                p.adj="none")
+ pairwise.t.test(heart$oldpeak,heart$cp.type,
+                p.adj="none") 
+
+
+##number of tests performed = 1 manova, 4 anovas, 18 t-tests; total = 23 
+##adjusted significance level = .05/23 = 0.0022
+
+ 
+
+```
+In this code chunk, a MANOVA was conducted to determine the effect of the type of chest pain a patient reported experienceing (asaymptomatic, atypical angina, non-anginal or typical agnina) on four numeric dependent variables. The MANOVA showed that there were significant differences between the four types of chest pains as a result of the four dependent measurements. Next, univariate ANOVAs for each dependent variable were conducted. The univariate ANOVAs for initial.restbps F(3,299)=2.92, p<0.05, thalach F(3,299)=17.82, p<0.001, and oldpeak F(3,299)=14.27, p<0.001, were found to be significant. Post hoc analysis was performed conducting pairwise comparisons to determine which chest pain types differed in blood pressure, thalach and oldpeak. Atypical angina, non-anginal pain and tpyical angina were found to differ significantly from asymptomatic chest pain in terms of thalach after adjusting for multiple comparisons. Additionally, Atypical angina and non-anginal pain were found to differ significantly from asymptomatic chest pain and typical angina was found to significantly differ from atypical angina in terms of oldpeak after adjusting for multiple comparisons. The total number of tests perfored was 23 (1 MANOVA, 4 ANOVAs, 18 t-tests). This was then used to calculate the bonferroni correction (0.0022). However, given all this, all the assumptions for the MANOVA are not likely to have been met - specifically the multivariate normality assumption and the homogenity of covariances assumption.
+
+
+
+## Randomization test
+```{R}
+##Null distribution
+t<-vector() 
+for(i in 1:10000){
+  samp<-rnorm(303,mean(heart$initial.restbps)) 
+  t[i] <- (mean(samp)-(mean(heart$initial.restbps)))/(sd(samp)/sqrt(303)) 
+}
+data.frame(t)%>%
+ggplot(aes(t))+geom_histogram(aes(y=..density..), bins=30)+
+  stat_function(fun=dt,args=list(df=302),geom="line")+ggtitle("Null t-test Distribution")
+ quantile(t,.975)
+ ##Randomization test
+ rand_dist<-vector()
+for(i in 1:5000){
+new<-data.frame(bps=sample(heart$initial.restbps),sex=heart$sex)
+rand_dist[i]<-mean(new[new$sex=="male",]$bps)-
+              mean(new[new$sex=="female",]$bps)}
+ 
+##p-value
+mean(rand_dist>1.961418 )*2
+ 
+```
+For the randomization test, I determined if there was a difference in patients' mean initial resting blood pressure (initial.restbps) between sexes. The null hypothesis is that there is no difference in average initial resting blood pressure between males and females. The alternative hypothesis is that a difference does exist in average initial resting blood pressure between sexes. First I generated the null distribution of a t-test, which is then showed in the graph above. Next I took 5,000 random permutations of initial blood pressure readings and sexes. The p-value was determined by finding the the proportion of the null distribution that was above the 0.975 mark and multiplying this by two. This p-value equated to 0.362, which is not significant. Therefor, it can be concluded that there is no mean differnce in initial resting blood pressure between males and females. 
+
+
+## Linear Regression 
+```{R}
+library(sandwich); library(lmtest)
+heart$initial.restbps_c <-heart$initial.restbps - mean(heart$initial.restbps)##mean centering numerics
+heart$chol_c <-heart$chol - mean(heart$chol)##mean centering numerics
+linear_fit <- lm(age ~ initial.restbps_c*sex, data=heart)
+##linearity assumptions 
+resids<-linear_fit$residuals
+fitvals<-linear_fit$fitted.values
+ggplot()+geom_point(aes(fitvals,resids))+geom_hline(yintercept=0, color='red')+
+  ggtitle("Residuals vs Fit Values") ##passes linearity assumption
+shapiro.test(resids)##shows normal distribution (p>0.05)
+bptest(linear_fit) ##shows homoskedacity (p>0.05)
+
+summary(linear_fit)
+
+
+##interaction plot only two predictors
+heart %>% 
+  ggplot() +
+  aes(x = initial.restbps_c, color = sex, group = sex, y = age) +
+  geom_point()+
+  geom_smooth(method = "lm")+ggtitle("Interaction Plot")
+
+coeftest(linear_fit, vcov = vcovHC(linear_fit))[,1:2] ##robust SE's
+
+
+noint.linear_fit <- lm(age ~ initial.restbps_c+sex, data=heart)
+summary(noint.linear_fit)
+```
+In this chunk of code, I first mean centered my numeric variables. Next, I checked the assumptions for normal distribution and homoskedacity using a Shapiro-Wilk test and a Breusch-Pagan test respectively. Both assumptions were met, as the p-values were not significant. For females for every one mmHg increase in initial resting blood pressure age increases by 0.136 years (t=3.713, df=299, p<0.01). For patients with an average initial resting blood pressure, males are an average of 1.603 years older than females (t=1.484, df=299, p>0.01). No significant interaction between sex and initial resting blood pressure was found on patients' age. After correcting for robust standard errors, there was no change in significance or the value of the coefficient estimates. After running the model with only the main effects included, the coefficient estimates remained the appoximately the same and the p-value for initial resting blood pressure remained significant. Overall, the model only explains appoximately 7.60% of the variation in patients' age. 
+
+
+## Bootstrapped Standard Errors
+```{R}
+bootstrap_dat<-heart[sample(nrow(heart),replace=TRUE),]
+
+samp_distn<-replicate(5000, {
+  bootstrap_dat<-heart[sample(nrow(heart),replace=TRUE),]
+  fit<-lm(age~initial.restbps_c*sex,data=bootstrap_dat)
+  coef(fit)
+})
+
+samp_distn%>%t%>%as.data.frame%>%summarize_all(sd)
+
+```
+This code chunk shows that there is little change in the estimate of standard errors after bootstrapping the data when compared to the standard errors of the original model and the robust standard error model.  
+
+## Logistic Regression
+```{R}
+heart <- heart%>%select(-diagnosis, -initial.restbps_c, -chol_c)
+logit_fit<- glm(target~age+cp.type, data = heart, family = binomial)
+coeftest(logit_fit)
+exp(coeftest(logit_fit))
+
+##confusion matrix
+probs <- predict(logit_fit, type = "response")
+pred<-ifelse(probs>.5,1,0)
+table(predictions=pred, truth=heart$target)%>%addmargins
+##Accuracy 
+(104+126)/303
+##Sensitivity 
+104/143
+##Specificity
+126/160
+##PPV
+104/138
+
+##Density of log-odds graph
+heart <- heart%>%mutate(diagnosis = case_when(target==0 ~ "disease",
+                                              target==1 ~ "no disease"))
+heart$logit<-predict(logit_fit) 
+ggplot(heart,aes(logit, fill=diagnosis))+geom_density(alpha=.3)+
+  geom_vline(xintercept=0,lty=2)+ggtitle("Density of log-odds vs Target Outcome")
+
+##ROC Plot
+heart <- heart%>%select(-diagnosis)
+library(plotROC)
+ROCplot<-ggplot(heart)+geom_roc(aes(d=target,m=probs), n.cuts=0)+
+  geom_segment(aes(x=0,xend=1,y=0,yend=1),lty=2)+ ggtitle("ROC Plot")
+ROCplot
+calc_auc(ROCplot)
+
+##Cross Validation
+set.seed(1234)
+k=10 
+data1<-heart[sample(nrow(heart)),] 
+folds<-cut(seq(1:nrow(heart)),breaks=k,labels=F) 
+diags<-NULL
+for(i in 1:k){
+  train<-data1[folds!=i,]
+  test<-data1[folds==i,]
+  truth<-test$target
+  fit<-glm(target~age+cp.type, data = heart, family = binomial)
+  probs<-predict(fit,newdata = test,type="response")
+  diags<-rbind(diags,class_diag(probs,truth))
+}
+##Average out-of-sample Accuracy, Sensitivity, and Recall 
+apply(diags,2,mean) 
+
+
+```
+After running a logistic regression, the following conclusions could be made. Controlling for age, the odds of heart disease for a patient with atypical angina are 0.092 times higher than a patient with asymptomatic chest pain. Again, controlling for age, the odds of heart disease for a patient with non-angina pain are 0.099 times higher than a patient with asymptomatic chest pain. Controlling for age, the odds of heart disease for a patient with typical angina pain are 0.150 times higher than a patient with asymptomatic chest pain. Lastly, controlling for type of chest pain, for every one year increase in age, odds of heart disease increase by a factor of 1.05. Next an ROC plot was created, and an area under the curve of 0.8073562 was calculated. Because this auc falls between 0.8 and 0.9, it is classified as "good".
+
+## LASSO Regression 
+```{R}
+library(glmnet)
+lasso_fit<- glm(target~., data = heart, family = binomial)
+y<-as.matrix(heart$target)
+x<-model.matrix(lasso_fit)
+x <- x[,-c(1,17)]
+x<-scale(x)
+cv<-cv.glmnet(x,y)
+cv<-cv.glmnet(x,y, family = "binomial") 
+lasso1<-glmnet(x,y,lambda=cv$lambda.1se, family = "binomial")
+coef(lasso1)
+
+##rerunning with coefficients from LASSO
+set.seed(1234)
+k=10 
+data1<-heart[sample(nrow(heart)),] 
+folds<-cut(seq(1:nrow(heart)),breaks=k,labels=F) 
+diags<-NULL
+for(i in 1:k){
+  train<-data1[folds!=i,]
+  test<-data1[folds==i,]
+  truth<-test$target
+  fit<-glm(target~sex+cp.type+initial.restbps+restecg+thalach+exang+oldpeak+slope+ca+thal, data = heart, family = binomial)
+  probs<-predict(fit,newdata = test,type="response")
+  diags<-rbind(diags,class_diag(probs,truth))
+}
+apply(diags,2,mean) 
+```
+The LASSO regression indicated that the following variables should be kept: sex, cp.type, initial.restbps, restecg, thalach, exang, oldpeak, slope, ca and thal. After rerunning the 10-fold cross validation that included all the the above variables the out of sample accuracy increased from 75.9% to 84.5%. Additionally, the area under the curve increased from 0.800 to 0.926.

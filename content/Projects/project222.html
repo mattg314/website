@@ -1,0 +1,460 @@
+---
+title: 'Project 2: Modeling, Testing, and Predicting'
+author: "Mattt Gibson, msg2669"
+date: '11/26/19'
+output:
+  pdf_document:
+    toc: yes
+  html_document:
+    toc: yes
+    toc_float:
+      collapsed: no
+      smooth_scroll: yes
+---
+
+
+
+<div id="introduction" class="section level2">
+<h2>Introduction</h2>
+<p>Heart disease is the leading cause of death in the U.S. Knowing this, I wanted to determine if heart disease could be pridcted based on a certain group of indicators. In an attempt to find an answer, I obtained a data set of patients from kaggle.com in order to build a model to predict heart disease based on a patients’ symptoms when first admitted to the hospital. The dataset has 15 variables and 303 observations. The predictors I will focus most on are: age, sex, chest pain type (cp.type), patients initial resting blood pressure when admitted to the hospital (initial.restbps), cholesterol (chol), resting ECG results (restecg), maximum heart rate (thalach), excercise-induced angina (exang), and lastly oldpeak, which is defined on the kaggle dataset as ST depression induced by exercise relative to rest. In the dataset, the binary response variable called target is labeled 0 for no disease and 1 if a heart disease is present. In the following code I read in and organize the data set as well as recode the chest pain variable to a strings of categorical observations.</p>
+<pre class="r"><code>heart &lt;- read.csv(&quot;~/Downloads/heart.csv&quot;)
+heart%&gt;%rename(initial.restbps = trestbps) -&gt;heart
+heart &lt;- heart%&gt;%mutate(cp.type = case_when(cp==0 ~ &quot;asymptomatic&quot;,
+                                            cp==1 ~ &quot;atypical angina&quot;,
+                                            cp==2 ~ &quot;non-anginal pain&quot;, 
+                                            cp==3~ &quot;typical angina&quot;)) 
+
+heart &lt;- heart%&gt;%mutate(target = case_when(target==0 ~ 1,
+                                            target==1 ~ 0)) 
+select&lt;-dplyr::select
+heart &lt;- heart%&gt;%select(-cp)
+heart &lt;- heart%&gt;%select(age, sex, cp.type, everything())
+heart &lt;- heart%&gt;%mutate(diagnosis = case_when(target==0 ~ &quot;no disease&quot;,
+                                              target==1 ~ &quot;disease&quot;))
+library(car)
+heart$sex&lt;-recode(heart$sex, &quot;0=&#39;male&#39;&quot;)
+heart$sex&lt;-recode(heart$sex, &quot;1=&#39;female&#39;&quot;)</code></pre>
+</div>
+<div id="manova" class="section level2">
+<h2>Manova</h2>
+<pre class="r"><code>covmats&lt;-heart%&gt;%group_by(sex)%&gt;%do(covs=cov(.[4:13]))
+for(i in 1:3){print(covmats$covs[i])} ##testing for homogenity of covariances</code></pre>
+<pre><code>## [[1]]
+## initial.restbps chol fbs restecg thalach exang
+## initial.restbps 277.4971624 60.8407204 0.950260307
+-1.4632052906 -9.8078889 -0.285962197
+## chol 60.8407204 1830.3330519 -0.827986492 -1.9924018573
+-51.1780639 2.197481356
+## fbs 0.9502603 -0.8279865 0.134655973 -0.0084423808
+0.4139581 -0.006191079
+## restecg -1.4632053 -1.9924019 -0.008442381 0.2608695652
+1.0925144 -0.024553257
+## thalach -9.8078889 -51.1780639 0.413958070 1.0925144224
+582.2994700 -5.383612401
+## exang -0.2859622 2.1974814 -0.006191079 -0.0245532574
+-5.3836124 0.234745087
+## oldpeak 2.0576216 2.5246236 -0.018495849 -0.0195300408
+-10.6765841 0.186454669
+## slope -0.6444116 -2.8213029 -0.023075841 0.0311664556
+6.1703485 -0.076497350
+## ca 0.5821725 4.6713803 0.035035880 -0.0253271423
+-5.9587730 0.065569157
+## thal 0.3951972 3.0094273 -0.015688758 -0.0004924722
+-1.2853994 0.054007786
+## oldpeak slope ca thal
+## initial.restbps 2.05762159 -0.64441161 0.58217251
+0.3951972234
+## chol 2.52462361 -2.82130294 4.67138033 3.0094273252
+## fbs -0.01849585 -0.02307584 0.03503588 -0.0156887576
+## restecg -0.01953004 0.03116646 -0.02532714 -0.0004924722
+## thalach -10.67658412 6.17034848 -5.95877304
+-1.2853993715
+## exang 0.18645467 -0.07649735 0.06556916 0.0540077858
+## oldpeak 1.37975986 -0.42153745 0.15778106 0.1117325641
+## slope -0.42153745 0.39360255 -0.02392008 -0.0149383237
+## ca 0.15778106 -0.02392008 1.15365133 0.0662023357
+## thal 0.11173256 -0.01493832 0.06620234 0.4355330425
+##
+## [[1]]
+## initial.restbps chol fbs restecg thalach exang
+## initial.restbps 372.9192982 191.542982 1.515789474
+-0.269298246 -41.5578947 2.601754386
+## chol 191.5429825 4236.570943 3.098684211 -9.764364035
+40.5828947 2.593201754
+## fbs 1.5157895 3.098684 0.110526316 -0.030263158
+-1.0684211 0.023684211
+## restecg -0.2692982 -9.764364 -0.030263158 0.310416667
+-0.7776316 0.004166667
+## thalach -41.5578947 40.582895 -1.068421053 -0.777631579
+401.9210526 -1.071052632
+## exang 2.6017544 2.593202 0.023684211 0.004166667
+-1.0710526 0.178508772
+## oldpeak 8.3988596 8.485208 0.041973684 -0.060866228
+-5.5896053 0.071864035
+## slope -2.8359649 5.090680 0.009210526 0.026425439
+3.9144737 -0.067324561
+## ca 4.9008772 5.694627 0.077631579 -0.056469298
+-2.5644737 0.008991228
+## thal 1.6736842 7.635526 0.005263158 0.001315789
+-1.1000000 0.044736842
+## oldpeak slope ca thal
+## initial.restbps 8.39885965 -2.835964912 4.900877193
+1.673684211
+## chol 8.48520833 5.090679825 5.694627193 7.635526316
+## fbs 0.04197368 0.009210526 0.077631579 0.005263158
+## restecg -0.06086623 0.026425439 -0.056469298 0.001315789
+## thalach -5.58960526 3.914473684 -2.564473684
+-1.100000000
+## exang 0.07186404 -0.067324561 0.008991228 0.044736842
+## oldpeak 1.25405154 -0.392817982 0.455471491 0.187236842
+## slope -0.39281798 0.352521930 -0.101425439 -0.085526316
+## ca 0.45547149 -0.101425439 0.776206140 0.109210526
+## thal 0.18723684 -0.085526316 0.109210526 0.194736842
+##
+## [[1]]
+## NULL</code></pre>
+<pre class="r"><code>man2 &lt;- manova(cbind(initial.restbps, chol, thalach, oldpeak)~cp.type, data=heart)
+summary(man2)</code></pre>
+<pre><code>## Df Pillai approx F num Df den Df Pr(&gt;F)
+## cp.type 3 0.24434 6.6059 12 894 2.02e-11 ***
+## Residuals 299
+## ---
+## Signif. codes: 0 &#39;***&#39; 0.001 &#39;**&#39; 0.01 &#39;*&#39; 0.05 &#39;.&#39; 0.1
+&#39; &#39; 1</code></pre>
+<pre class="r"><code>summary.aov(man2)</code></pre>
+<pre><code>## Response initial.restbps :
+## Df Sum Sq Mean Sq F value Pr(&gt;F)
+## cp.type 3 2643 881.03 2.9189 0.0344 *
+## Residuals 299 90248 301.83
+## ---
+## Signif. codes: 0 &#39;***&#39; 0.001 &#39;**&#39; 0.01 &#39;*&#39; 0.05 &#39;.&#39; 0.1
+&#39; &#39; 1
+##
+## Response chol :
+## Df Sum Sq Mean Sq F value Pr(&gt;F)
+## cp.type 3 5001 1666.9 0.6181 0.6037
+## Residuals 299 806300 2696.7
+##
+## Response thalach :
+## Df Sum Sq Mean Sq F value Pr(&gt;F)
+## cp.type 3 24030 8009.9 17.818 1.149e-10 ***
+## Residuals 299 134413 449.5
+## ---
+## Signif. codes: 0 &#39;***&#39; 0.001 &#39;**&#39; 0.01 &#39;*&#39; 0.05 &#39;.&#39; 0.1
+&#39; &#39; 1
+##
+## Response oldpeak :
+## Df Sum Sq Mean Sq F value Pr(&gt;F)
+## cp.type 3 51.00 17.0000 14.273 1.023e-08 ***
+## Residuals 299 356.12 1.1911
+## ---
+## Signif. codes: 0 &#39;***&#39; 0.001 &#39;**&#39; 0.01 &#39;*&#39; 0.05 &#39;.&#39; 0.1
+&#39; &#39; 1</code></pre>
+<pre class="r"><code> pairwise.t.test(heart$initial.restbps,heart$cp.type,
+                p.adj=&quot;none&quot;)</code></pre>
+<pre><code>##
+## Pairwise comparisons using t tests with pooled SD
+##
+## data: heart$initial.restbps and heart$cp.type
+##
+## asymptomatic atypical angina non-anginal pain
+## atypical angina 0.2056 - -
+## non-anginal pain 0.4876 0.5214 -
+## typical angina 0.0241 0.0047 0.0105
+##
+## P value adjustment method: none</code></pre>
+<pre class="r"><code> pairwise.t.test(heart$thalach,heart$cp.type,
+                p.adj=&quot;none&quot;)</code></pre>
+<pre><code>##
+## Pairwise comparisons using t tests with pooled SD
+##
+## data: heart$thalach and heart$cp.type
+##
+## asymptomatic atypical angina non-anginal pain
+## atypical angina 1.2e-09 - -
+## non-anginal pain 3.2e-07 0.0713 -
+## typical angina 0.0013 0.2273 0.9443
+##
+## P value adjustment method: none</code></pre>
+<pre class="r"><code> pairwise.t.test(heart$oldpeak,heart$cp.type,
+                p.adj=&quot;none&quot;) </code></pre>
+<pre><code>##
+## Pairwise comparisons using t tests with pooled SD
+##
+## data: heart$oldpeak and heart$cp.type
+##
+## asymptomatic atypical angina non-anginal pain
+## atypical angina 7.4e-09 - -
+## non-anginal pain 9.9e-05 0.01342 -
+## typical angina 0.97371 0.00011 0.02102
+##
+## P value adjustment method: none</code></pre>
+<pre class="r"><code>##number of tests performed = 1 manova, 4 anovas, 18 t-tests; total = 23 
+##adjusted significance level = .05/23 = 0.0022</code></pre>
+<p>In this code chunk, a MANOVA was conducted to determine the effect of the type of chest pain a patient reported experienceing (asaymptomatic, atypical angina, non-anginal or typical agnina) on four numeric dependent variables. The MANOVA showed that there were significant differences between the four types of chest pains as a result of the four dependent measurements. Next, univariate ANOVAs for each dependent variable were conducted. The univariate ANOVAs for initial.restbps F(3,299)=2.92, p&lt;0.05, thalach F(3,299)=17.82, p&lt;0.001, and oldpeak F(3,299)=14.27, p&lt;0.001, were found to be significant. Post hoc analysis was performed conducting pairwise comparisons to determine which chest pain types differed in blood pressure, thalach and oldpeak. Atypical angina, non-anginal pain and tpyical angina were found to differ significantly from asymptomatic chest pain in terms of thalach after adjusting for multiple comparisons. Additionally, Atypical angina and non-anginal pain were found to differ significantly from asymptomatic chest pain and typical angina was found to significantly differ from atypical angina in terms of oldpeak after adjusting for multiple comparisons. The total number of tests perfored was 23 (1 MANOVA, 4 ANOVAs, 18 t-tests). This was then used to calculate the bonferroni correction (0.0022). However, given all this, all the assumptions for the MANOVA are not likely to have been met - specifically the multivariate normality assumption and the homogenity of covariances assumption.</p>
+</div>
+<div id="randomization-test" class="section level2">
+<h2>Randomization test</h2>
+<pre class="r"><code>##Null distribution
+t&lt;-vector() 
+for(i in 1:10000){
+  samp&lt;-rnorm(303,mean(heart$initial.restbps)) 
+  t[i] &lt;- (mean(samp)-(mean(heart$initial.restbps)))/(sd(samp)/sqrt(303)) 
+}
+data.frame(t)%&gt;%
+ggplot(aes(t))+geom_histogram(aes(y=..density..), bins=30)+
+  stat_function(fun=dt,args=list(df=302),geom=&quot;line&quot;)+ggtitle(&quot;Null t-test Distribution&quot;)</code></pre>
+<p><img src="/Projects/project222_files/figure-html/unnamed-chunk-3-1.png" width="768" style="display: block; margin: auto;" /></p>
+<pre class="r"><code> quantile(t,.975)</code></pre>
+<pre><code>##    97.5% 
+## 1.969173</code></pre>
+<pre class="r"><code> ##Randomization test
+ rand_dist&lt;-vector()
+for(i in 1:5000){
+new&lt;-data.frame(bps=sample(heart$initial.restbps),sex=heart$sex)
+rand_dist[i]&lt;-mean(new[new$sex==&quot;male&quot;,]$bps)-
+              mean(new[new$sex==&quot;female&quot;,]$bps)}
+ 
+##p-value
+mean(rand_dist&gt;1.961418 )*2</code></pre>
+<pre><code>## [1] 0.3768</code></pre>
+<p>For the randomization test, I determined if there was a difference in patients’ mean initial resting blood pressure (initial.restbps) between sexes. The null hypothesis is that there is no difference in average initial resting blood pressure between males and females. The alternative hypothesis is that a difference does exist in average initial resting blood pressure between sexes. First I generated the null distribution of a t-test, which is then showed in the graph above. Next I took 5,000 random permutations of initial blood pressure readings and sexes. The p-value was determined by finding the the proportion of the null distribution that was above the 0.975 mark and multiplying this by two. This p-value equated to 0.362, which is not significant. Therefor, it can be concluded that there is no mean differnce in initial resting blood pressure between males and females.</p>
+</div>
+<div id="linear-regression" class="section level2">
+<h2>Linear Regression</h2>
+<pre class="r"><code>library(sandwich); library(lmtest)
+heart$initial.restbps_c &lt;-heart$initial.restbps - mean(heart$initial.restbps)##mean centering numerics
+heart$chol_c &lt;-heart$chol - mean(heart$chol)##mean centering numerics
+linear_fit &lt;- lm(age ~ initial.restbps_c*sex, data=heart)
+##linearity assumptions 
+resids&lt;-linear_fit$residuals
+fitvals&lt;-linear_fit$fitted.values
+ggplot()+geom_point(aes(fitvals,resids))+geom_hline(yintercept=0, color=&#39;red&#39;)+
+  ggtitle(&quot;Residuals vs Fit Values&quot;) ##passes linearity assumption</code></pre>
+<p><img src="/Projects/project222_files/figure-html/unnamed-chunk-4-1.png" width="768" style="display: block; margin: auto;" /></p>
+<pre class="r"><code>shapiro.test(resids)##shows normal distribution (p&gt;0.05)</code></pre>
+<pre><code>## 
+##  Shapiro-Wilk normality test
+## 
+## data:  resids
+## W = 0.99496, p-value = 0.4247</code></pre>
+<pre class="r"><code>bptest(linear_fit) ##shows homoskedacity (p&gt;0.05)</code></pre>
+<pre><code>## 
+##  studentized Breusch-Pagan test
+## 
+## data:  linear_fit
+## BP = 6.9263, df = 3, p-value = 0.07428</code></pre>
+<pre class="r"><code>summary(linear_fit)</code></pre>
+<pre><code>##
+## Call:
+## lm(formula = age ~ initial.restbps_c * sex, data =
+heart)
+##
+## Residuals:
+## Min 1Q Median 3Q Max
+## -24.6301 -6.2399 0.6587 6.0812 24.0477
+##
+## Coefficients:
+## Estimate Std. Error t value Pr(&gt;|t|)
+## (Intercept) 53.85022 0.60730 88.671 &lt; 2e-16 ***
+## initial.restbps_c 0.13556 0.03651 3.713 0.000245 ***
+## sexmale 1.60359 1.08044 1.484 0.138809
+## initial.restbps_c:sexmale 0.01742 0.05903 0.295 0.768188
+## ---
+## Signif. codes: 0 &#39;***&#39; 0.001 &#39;**&#39; 0.01 &#39;*&#39; 0.05 &#39;.&#39; 0.1
+&#39; &#39; 1
+##
+## Residual standard error: 8.73 on 299 degrees of freedom
+## Multiple R-squared: 0.08515, Adjusted R-squared: 0.07597
+## F-statistic: 9.276 on 3 and 299 DF, p-value: 6.963e-06</code></pre>
+<pre class="r"><code>##interaction plot only two predictors
+heart %&gt;% 
+  ggplot() +
+  aes(x = initial.restbps_c, color = sex, group = sex, y = age) +
+  geom_point()+
+  geom_smooth(method = &quot;lm&quot;)+ggtitle(&quot;Interaction Plot&quot;)</code></pre>
+<p><img src="/Projects/project222_files/figure-html/unnamed-chunk-4-2.png" width="768" style="display: block; margin: auto;" /></p>
+<pre class="r"><code>coeftest(linear_fit, vcov = vcovHC(linear_fit))[,1:2] ##robust SE&#39;s</code></pre>
+<pre><code>##                             Estimate Std. Error
+## (Intercept)               53.8502166 0.59931701
+## initial.restbps_c          0.1355624 0.03254231
+## sexmale                    1.6035853 1.12227237
+## initial.restbps_c:sexmale  0.0174151 0.05780656</code></pre>
+<pre class="r"><code>noint.linear_fit &lt;- lm(age ~ initial.restbps_c+sex, data=heart)
+summary(noint.linear_fit)</code></pre>
+<pre><code>##
+## Call:
+## lm(formula = age ~ initial.restbps_c + sex, data =
+heart)
+##
+## Residuals:
+## Min 1Q Median 3Q Max
+## -24.6238 -6.2200 0.5317 6.2133 24.0873
+##
+## Coefficients:
+## Estimate Std. Error t value Pr(&gt;|t|)
+## (Intercept) 53.85473 0.60619 88.842 &lt; 2e-16 ***
+## initial.restbps_c 0.14223 0.02865 4.965 1.16e-06 ***
+## sexmale 1.61477 1.07813 1.498 0.135
+## ---
+## Signif. codes: 0 &#39;***&#39; 0.001 &#39;**&#39; 0.01 &#39;*&#39; 0.05 &#39;.&#39; 0.1
+&#39; &#39; 1
+##
+## Residual standard error: 8.717 on 300 degrees of freedom
+## Multiple R-squared: 0.08488, Adjusted R-squared: 0.07878
+## F-statistic: 13.91 on 2 and 300 DF, p-value: 1.666e-06</code></pre>
+<p>In this chunk of code, I first mean centered my numeric variables. Next, I checked the assumptions for normal distribution and homoskedacity using a Shapiro-Wilk test and a Breusch-Pagan test respectively. Both assumptions were met, as the p-values were not significant. For females for every one mmHg increase in initial resting blood pressure age increases by 0.136 years (t=3.713, df=299, p&lt;0.01). For patients with an average initial resting blood pressure, males are an average of 1.603 years older than females (t=1.484, df=299, p&gt;0.01). No significant interaction between sex and initial resting blood pressure was found on patients’ age. After correcting for robust standard errors, there was no change in significance or the value of the coefficient estimates. After running the model with only the main effects included, the coefficient estimates remained the appoximately the same and the p-value for initial resting blood pressure remained significant. Overall, the model only explains appoximately 7.60% of the variation in patients’ age.</p>
+</div>
+<div id="bootstrapped-standard-errors" class="section level2">
+<h2>Bootstrapped Standard Errors</h2>
+<pre class="r"><code>bootstrap_dat&lt;-heart[sample(nrow(heart),replace=TRUE),]
+
+samp_distn&lt;-replicate(5000, {
+  bootstrap_dat&lt;-heart[sample(nrow(heart),replace=TRUE),]
+  fit&lt;-lm(age~initial.restbps_c*sex,data=bootstrap_dat)
+  coef(fit)
+})
+
+samp_distn%&gt;%t%&gt;%as.data.frame%&gt;%summarize_all(sd)</code></pre>
+<pre><code>## (Intercept) initial.restbps_c sexmale
+initial.restbps_c:sexmale
+## 1 0.5942092 0.03186257 1.103241 0.05746379</code></pre>
+<p>This code chunk shows that there is little change in the estimate of standard errors after bootstrapping the data when compared to the standard errors of the original model and the robust standard error model.</p>
+</div>
+<div id="logistic-regression" class="section level2">
+<h2>Logistic Regression</h2>
+<pre class="r"><code>heart &lt;- heart%&gt;%select(-diagnosis, -initial.restbps_c, -chol_c)
+logit_fit&lt;- glm(target~age+cp.type, data = heart, family = binomial)
+coeftest(logit_fit)</code></pre>
+<pre><code>##
+## z test of coefficients:
+##
+## Estimate Std. Error z value Pr(&gt;|z|)
+## (Intercept) -1.632537 0.873206 -1.8696 0.0615406 .
+## age 0.047529 0.015685 3.0302 0.0024439 **
+## cp.typeatypical angina -2.387405 0.419630 -5.6893
+1.276e-08 ***
+## cp.typenon-anginal pain -2.311822 0.330703 -6.9906
+2.736e-12 ***
+## cp.typetypical angina -1.894040 0.502645 -3.7681
+0.0001645 ***
+## ---
+## Signif. codes: 0 &#39;***&#39; 0.001 &#39;**&#39; 0.01 &#39;*&#39; 0.05 &#39;.&#39; 0.1
+&#39; &#39; 1</code></pre>
+<pre class="r"><code>exp(coeftest(logit_fit))</code></pre>
+<pre><code>##
+## z test of coefficients:
+##
+## Estimate Std. Error z value Pr(&gt;|z|)
+## (Intercept) 0.195433 2.394575 0.1542 1.063
+## age 1.048676 1.015809 20.7014 1.002
+## cp.typeatypical angina 0.091868 1.521398 0.0034 1.000
+## cp.typenon-anginal pain 0.099081 1.391946 0.0009 1.000
+## cp.typetypical angina 0.150463 1.653088 0.0231 1.000</code></pre>
+<pre class="r"><code>##confusion matrix
+probs &lt;- predict(logit_fit, type = &quot;response&quot;)
+pred&lt;-ifelse(probs&gt;.5,1,0)
+table(predictions=pred, truth=heart$target)%&gt;%addmargins</code></pre>
+<pre><code>##            truth
+## predictions   0   1 Sum
+##         0   126  34 160
+##         1    39 104 143
+##         Sum 165 138 303</code></pre>
+<pre class="r"><code>##Accuracy 
+(104+126)/303</code></pre>
+<pre><code>## [1] 0.7590759</code></pre>
+<pre class="r"><code>##Sensitivity 
+104/143</code></pre>
+<pre><code>## [1] 0.7272727</code></pre>
+<pre class="r"><code>##Specificity
+126/160</code></pre>
+<pre><code>## [1] 0.7875</code></pre>
+<pre class="r"><code>##PPV
+104/138</code></pre>
+<pre><code>## [1] 0.7536232</code></pre>
+<pre class="r"><code>##Density of log-odds graph
+heart &lt;- heart%&gt;%mutate(diagnosis = case_when(target==0 ~ &quot;disease&quot;,
+                                              target==1 ~ &quot;no disease&quot;))
+heart$logit&lt;-predict(logit_fit) 
+ggplot(heart,aes(logit, fill=diagnosis))+geom_density(alpha=.3)+
+  geom_vline(xintercept=0,lty=2)+ggtitle(&quot;Density of log-odds vs Target Outcome&quot;)</code></pre>
+<p><img src="/Projects/project222_files/figure-html/unnamed-chunk-6-1.png" width="768" style="display: block; margin: auto;" /></p>
+<pre class="r"><code>##ROC Plot
+heart &lt;- heart%&gt;%select(-diagnosis)
+library(plotROC)
+ROCplot&lt;-ggplot(heart)+geom_roc(aes(d=target,m=probs), n.cuts=0)+
+  geom_segment(aes(x=0,xend=1,y=0,yend=1),lty=2)+ ggtitle(&quot;ROC Plot&quot;)
+ROCplot</code></pre>
+<p><img src="/Projects/project222_files/figure-html/unnamed-chunk-6-2.png" width="768" style="display: block; margin: auto;" /></p>
+<pre class="r"><code>calc_auc(ROCplot)</code></pre>
+<pre><code>##   PANEL group       AUC
+## 1     1    -1 0.8073562</code></pre>
+<pre class="r"><code>##Cross Validation
+set.seed(1234)
+k=10 
+data1&lt;-heart[sample(nrow(heart)),] 
+folds&lt;-cut(seq(1:nrow(heart)),breaks=k,labels=F) 
+diags&lt;-NULL
+for(i in 1:k){
+  train&lt;-data1[folds!=i,]
+  test&lt;-data1[folds==i,]
+  truth&lt;-test$target
+  fit&lt;-glm(target~age+cp.type, data = heart, family = binomial)
+  probs&lt;-predict(fit,newdata = test,type=&quot;response&quot;)
+  diags&lt;-rbind(diags,class_diag(probs,truth))
+}
+##Average out-of-sample Accuracy, Sensitivity, and Recall 
+apply(diags,2,mean) </code></pre>
+<pre><code>##       acc      sens      spec       ppv       auc 
+## 0.7588172 0.7393347 0.7572788 0.7251662 0.7976574</code></pre>
+<p>After running a logistic regression, the following conclusions could be made. Controlling for age, the odds of heart disease for a patient with atypical angina are 0.092 times higher than a patient with asymptomatic chest pain. Again, controlling for age, the odds of heart disease for a patient with non-angina pain are 0.099 times higher than a patient with asymptomatic chest pain. Controlling for age, the odds of heart disease for a patient with typical angina pain are 0.150 times higher than a patient with asymptomatic chest pain. Lastly, controlling for type of chest pain, for every one year increase in age, odds of heart disease increase by a factor of 1.05. Next an ROC plot was created, and an area under the curve of 0.8073562 was calculated. Because this auc falls between 0.8 and 0.9, it is classified as “good”.</p>
+</div>
+<div id="lasso-regression" class="section level2">
+<h2>LASSO Regression</h2>
+<pre class="r"><code>library(glmnet)
+lasso_fit&lt;- glm(target~., data = heart, family = binomial)
+y&lt;-as.matrix(heart$target)
+x&lt;-model.matrix(lasso_fit)
+x &lt;- x[,-c(1,17)]
+x&lt;-scale(x)
+cv&lt;-cv.glmnet(x,y)
+cv&lt;-cv.glmnet(x,y, family = &quot;binomial&quot;) 
+lasso1&lt;-glmnet(x,y,lambda=cv$lambda.1se, family = &quot;binomial&quot;)
+coef(lasso1)</code></pre>
+<pre><code>## 16 x 1 sparse Matrix of class &quot;dgCMatrix&quot;
+##                                   s0
+## (Intercept)             -0.184090188
+## age                      .          
+## sexmale                 -0.290912416
+## cp.typeatypical angina  -0.103253535
+## cp.typenon-anginal pain -0.364334960
+## cp.typetypical angina   -0.083074020
+## initial.restbps          .          
+## chol                     .          
+## fbs                      .          
+## restecg                 -0.002422298
+## thalach                 -0.340786026
+## exang                    0.374885248
+## oldpeak                  0.387265807
+## slope                   -0.127436026
+## ca                       0.491062805
+## thal                     0.320618951</code></pre>
+<pre class="r"><code>##rerunning with coefficients from LASSO
+set.seed(1234)
+k=10 
+data1&lt;-heart[sample(nrow(heart)),] 
+folds&lt;-cut(seq(1:nrow(heart)),breaks=k,labels=F) 
+diags&lt;-NULL
+for(i in 1:k){
+  train&lt;-data1[folds!=i,]
+  test&lt;-data1[folds==i,]
+  truth&lt;-test$target
+  fit&lt;-glm(target~sex+cp.type+initial.restbps+restecg+thalach+exang+oldpeak+slope+ca+thal, data = heart, family = binomial)
+  probs&lt;-predict(fit,newdata = test,type=&quot;response&quot;)
+  diags&lt;-rbind(diags,class_diag(probs,truth))
+}
+apply(diags,2,mean) </code></pre>
+<pre><code>##       acc      sens      spec       ppv       auc 
+## 0.8450538 0.7555633 0.9081507 0.8662421 0.9237795</code></pre>
+<p>The LASSO regression indicated that the following variables should be kept: sex, cp.type, initial.restbps, restecg, thalach, exang, oldpeak, slope, ca and thal. After rerunning the 10-fold cross validation that included all the the above variables the out of sample accuracy increased from 75.9% to 84.5%. Additionally, the area under the curve increased from 0.800 to 0.926.</p>
+</div>

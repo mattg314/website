@@ -1,0 +1,328 @@
+<!DOCTYPE html>
+<html lang="en-US">
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="author" content="Matt Gibson" />
+    <meta name="description" content="Describe your website">
+    <link rel="shortcut icon" type="image/x-icon" href="/img/favicon.ico">
+    <title>Project 1: Exploratory Data Analysis</title>
+    <meta name="generator" content="Hugo 0.61.0" />
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" integrity="sha384-BVYiiSIFeK1dGmJRAkycuHAHRg32OmUcww7on3RYdg4Va+PmSTsz/K68vbdEjh4u" crossorigin="anonymous">
+    <link rel="stylesheet" type="text/css" href="/css/main.css" />
+    <link rel="stylesheet" type="text/css" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css" />
+    <link rel="stylesheet" type="text/css" href="https://fonts.googleapis.com/css?family=Source+Sans+Pro:200,400,200bold,400old" />
+    
+    <!--[if lt IE 9]>
+			<script src="https://oss.maxcdn.com/libs/html5shiv/3.7.0/html5shiv.js"></script>
+			<script src="https://oss.maxcdn.com/libs/respond.js/1.4.2/respond.min.js"></script>
+		<![endif]-->
+
+    
+  </head>
+
+  <body>
+    <div id="wrap">
+
+      
+      <nav class="navbar navbar-default">
+  <div class="container">
+    <div class="navbar-header">
+      <a class="navbar-brand" href="/"><i class="fa fa-home"></i></a>
+      <button type="button" class="navbar-toggle" data-toggle="collapse" data-target="#navbar">
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+      </button>
+    </div>
+    <div class="navbar-collapse collapse" id="navbar">
+      <ul class="nav navbar-nav navbar-right">
+      
+        
+        <li><a href="/blog/">BLOG</a></li>
+        
+        <li><a href="/projects/">PROJECTS</a></li>
+        
+        <li><a href="/resume/">RESUME</a></li>
+        
+      
+      </ul>
+    </div>
+  </div>
+</nav>
+
+      
+      <div class="container">
+        <div class="blog-post">
+          <h3>
+            <strong><a href="/projects/prject-1_eda/">Project 1: Exploratory Data Analysis</a></strong>
+          </h3>
+        </div>
+        <div class="blog-title">
+          <h4>
+          January 1, 0001
+            &nbsp;&nbsp;
+            
+          </h4>
+        </div>
+        <div class="panel panel-default">
+          <div class="panel-body">
+            <div class="blogpost">
+              
+
+
+<p>With the recent federal legalization of sports gambling I believe that sports data will become increasingly important and relevant in successfully predicting outcomes of games. For this project I obtained NFL gambling and game data from kaggle.com. The first data set included data on individual games such as schedule year and date, stadium name, home team score, away team score, and spread. The second data set recorded weather related data for these same NFL games, which included temperature, precipitation, location, stadium type (open-air or dome) and much more.</p>
+<p>For this project I focused on NFL over-under lines. The over-under line is the predicted combined point total for a certain game set by Las Vegas bookmakers. I believed that the weather would influence the over-under line. Specifically I believed that if there was poor weather during a game (ie cold, rain, snow ect.), the teams would score less points than the set over-under line.</p>
+<div id="joinging-and-wrangling-the-data-sets" class="section level2">
+<h2>Joinging and Wrangling the Data Sets</h2>
+<pre class="r"><code>library(tidyverse)</code></pre>
+<pre><code>## ── Attaching packages ─────────────────────────────────────────────────────── tidyverse 1.2.1 ──</code></pre>
+<pre><code>## ✔ ggplot2 3.2.1     ✔ purrr   0.3.2
+## ✔ tibble  2.1.3     ✔ dplyr   0.8.3
+## ✔ tidyr   1.0.0     ✔ stringr 1.4.0
+## ✔ readr   1.3.1     ✔ forcats 0.4.0</code></pre>
+<pre><code>## ── Conflicts ────────────────────────────────────────────────────────── tidyverse_conflicts() ──
+## ✖ dplyr::filter() masks stats::filter()
+## ✖ dplyr::lag()    masks stats::lag()</code></pre>
+<pre class="r"><code>spreadspoke_scores%&gt;%left_join(nfl_stadiums, by=c(&quot;stadium&quot;=&quot;stadium_name&quot;))-&gt; proj1_combined</code></pre>
+<pre><code>## Warning: Column `stadium`/`stadium_name` joining factors with different
+## levels, coercing to character vector</code></pre>
+<pre class="r"><code>proj1_combined%&gt;%select(-NAME,-STATION, -LATITUDE, -LONGITUDE,
+-stadium_capacity, -stadium_address, -stadium_open,-stadium_weather_station_code,
+-ELEVATION) -&gt; proj1_combined
+proj1_combined%&gt;%filter(schedule_season&gt;2006)%&gt;%filter(!is.na(stadium_weather_type)
+&amp;!is.na(over_under_line)&amp;!is.na(weather_temperature), 
+!is.na(weather_wind_mph)) -&gt; proj1_combined</code></pre>
+<p>In this block of code I used left_join to merge my two data sets. Both data sets included the name of the stadium where the game was played, so I decided to merge the data sets on these two variables and named it proj1_combined. In the following lines of code, I removed columns that I wouldn’t be focusing on such as stadium capacity, stadium address and stadium weather station code using the select function. Next, I used filter to drop games missing data points. Lastly I used filter again to only include data from the 2006 season and later to ensure the scores being used were subject to the current NFL rules.</p>
+</div>
+<div id="summary-statistics" class="section level2">
+<h2>Summary Statistics</h2>
+<pre class="r"><code>proj1_combined%&gt;%mutate(point_total=(score_home+score_away)) -&gt; proj1_combined
+
+proj1_combined%&gt;%mutate(over_under_hit=ifelse(point_total&gt;over_under_line, 
+                                              &quot;OVER&quot;, &quot;UNDER&quot;)) -&gt; proj1_combined
+
+proj1_combined%&gt;%select(point_total,over_under_line,spread_favorite)%&gt;%
+  arrange(desc(point_total))%&gt;%
+  glimpse</code></pre>
+<pre><code>## Observations: 3,033
+## Variables: 3
+## $ point_total     &lt;int&gt; 105, 101, 99, 96, 96, 91, 90, 89, 89, 89, 88, 87…
+## $ over_under_line &lt;dbl&gt; 63.5, 52.0, 57.5, 41.5, 48.0, 43.5, 49.5, 38.0, …
+## $ spread_favorite &lt;dbl&gt; -3.0, -3.0, -9.0, -7.0, -2.5, -1.5, -4.0, -3.0, …</code></pre>
+<pre class="r"><code>proj1_combined%&gt;%summarize(mean(over_under_line), sd(over_under_line),min(over_under_line), 
+                           max(over_under_line))</code></pre>
+<pre><code>##   mean(over_under_line) sd(over_under_line) min(over_under_line)
+## 1              44.33993            4.525071                 31.5
+##   max(over_under_line)
+## 1                 63.5</code></pre>
+<pre class="r"><code>proj1_combined%&gt;%summarize(mean(point_total), sd(point_total),
+                           min(point_total), max(point_total))</code></pre>
+<pre><code>##   mean(point_total) sd(point_total) min(point_total) max(point_total)
+## 1          44.95054        14.00601                3              105</code></pre>
+<pre class="r"><code>proj1_combined%&gt;%summarize(mean(spread_favorite), sd(spread_favorite),min(spread_favorite))</code></pre>
+<pre><code>##   mean(spread_favorite) sd(spread_favorite) min(spread_favorite)
+## 1             -5.485163            3.514802                -26.5</code></pre>
+<pre class="r"><code>proj1_combined%&gt;%group_by(stadium_weather_type)%&gt;%
+  summarize(mean(over_under_line), mean(point_total),
+            mean(spread_favorite))</code></pre>
+<pre><code>## # A tibble: 4 x 4
+##   stadium_weather_t… `mean(over_under_… `mean(point_tot… `mean(spread_favo…
+##   &lt;fct&gt;                           &lt;dbl&gt;            &lt;dbl&gt;              &lt;dbl&gt;
+## 1 cold                             44.1             44.8              -5.66
+## 2 dome                             45.9             46.7              -5.37
+## 3 moderate                         43.0             43.4              -5.65
+## 4 warm                             44.0             44.2              -4.95</code></pre>
+<pre class="r"><code>proj1_combined%&gt;%group_by(weather_detail)%&gt;%
+  summarize(mean(over_under_line), mean(point_total), 
+            mean(spread_favorite))</code></pre>
+<pre><code>## # A tibble: 9 x 4
+##   weather_detail    `mean(over_under_… `mean(point_tota… `mean(spread_favo…
+##   &lt;fct&gt;                          &lt;dbl&gt;             &lt;dbl&gt;              &lt;dbl&gt;
+## 1 &quot;&quot;                              43.8              44.4              -5.58
+## 2 DOME                            46.0              46.9              -5.34
+## 3 DOME (Open Roof)                44.2              42.7              -5.5 
+## 4 Fog                             43.9              45.5              -4.45
+## 5 Rain                            43.5              42.6              -5.30
+## 6 Rain | Fog                      41.2              39.5              -5.14
+## 7 Snow                            41.8              42.2              -4.07
+## 8 Snow | Fog                      44.2              57.2              -4.1 
+## 9 Snow | Freezing …               41.5              55                -6</code></pre>
+<pre class="r"><code>proj1_combined%&gt;%group_by(schedule_season)%&gt;%
+  summarize(mean(over_under_line), mean(point_total))</code></pre>
+<pre><code>## # A tibble: 12 x 3
+##    schedule_season `mean(over_under_line)` `mean(point_total)`
+##              &lt;int&gt;                   &lt;dbl&gt;               &lt;dbl&gt;
+##  1            2007                    41.8                43.5
+##  2            2008                    42.5                44.5
+##  3            2009                    43.0                43.4
+##  4            2010                    42.9                44.2
+##  5            2011                    43.8                44.4
+##  6            2012                    44.8                45.6
+##  7            2013                    45.4                46.8
+##  8            2014                    46.2                45.3
+##  9            2015                    45.2                45.5
+## 10            2016                    45.7                45.7
+## 11            2017                    44.1                43.6
+## 12            2018                    46.7                47.1</code></pre>
+<pre class="r"><code>proj1_combined%&gt;%group_by(weather_detail)%&gt;%count(over_under_hit)</code></pre>
+<pre><code>## # A tibble: 17 x 3
+## # Groups:   weather_detail [9]
+##    weather_detail       over_under_hit     n
+##    &lt;fct&gt;                &lt;chr&gt;          &lt;int&gt;
+##  1 &quot;&quot;                   OVER             995
+##  2 &quot;&quot;                   UNDER           1048
+##  3 DOME                 OVER             384
+##  4 DOME                 UNDER            380
+##  5 DOME (Open Roof)     OVER              26
+##  6 DOME (Open Roof)     UNDER             30
+##  7 Fog                  OVER              17
+##  8 Fog                  UNDER             11
+##  9 Rain                 OVER              45
+## 10 Rain                 UNDER             55
+## 11 Rain | Fog           OVER              12
+## 12 Rain | Fog           UNDER             10
+## 13 Snow                 OVER               7
+## 14 Snow                 UNDER              7
+## 15 Snow | Fog           OVER               4
+## 16 Snow | Fog           UNDER              1
+## 17 Snow | Freezing Rain OVER               1</code></pre>
+<pre class="r"><code>proj1_combined%&gt;%
+  select(-schedule_season, -score_home, -score_away, -stadium_close)%&gt;%
+  select_if(is.numeric)%&gt;%na.omit%&gt;%cor%&gt;%round(3)</code></pre>
+<pre><code>##                     spread_favorite over_under_line weather_temperature
+## spread_favorite               1.000          -0.016               0.111
+## over_under_line              -0.016           1.000               0.116
+## weather_temperature           0.111           0.116               1.000
+## weather_wind_mph             -0.042          -0.212              -0.299
+## point_total                   0.002           0.293               0.028
+##                     weather_wind_mph point_total
+## spread_favorite               -0.042       0.002
+## over_under_line               -0.212       0.293
+## weather_temperature           -0.299       0.028
+## weather_wind_mph               1.000      -0.123
+## point_total                   -0.123       1.000</code></pre>
+<p>In this block of code I generated summary statistics on my numeric variables. In the first two chunks of code I created two new variables using the mutate function. First, I created a variable of the total points scored in a game by combining the variables home_score and home_away. Next, I created a variable called over_under_hit using an if_else statement. This variable shows whether the point total exceeded the over under line or whether the point total fell below the line.</p>
+<p>The summary statistics above did not show the variation I expected to see with change in weather conditions. Only an average of 0.6 less points were scored in cold games versus warm games. In addition to this there was only a 0.1 difference between the average over under line and the total number of points scored in cold versus warm games. The largest difference I found was during rainy games. In games where rain was recorded, the under hit 55 times, while the over only hit 45 times. Lastly, I created a correlation matrix to see if there was a relationship between variables I may have missed or not thought to explore. However, as shown above the strogest r score was 0.293 - shown between the point total and over under line. Therefor, there was no r-score that indicated any type of relationship, positive or negative.</p>
+</div>
+<div id="plots" class="section level2">
+<h2>Plots</h2>
+<pre class="r"><code>proj1_combined%&gt;%
+  ggplot(aes(weather_detail,over_under_line, fill=over_under_hit))+
+  geom_bar(stat = &quot;summary&quot;)+  
+  theme(axis.text.x = element_text(angle=45, hjust=1))+xlab(&quot;Weather Type&quot;)+
+  ylab(&quot;Over Under Line&quot;)+ggtitle(&quot;Over Under Line vs Weather Type&quot;)</code></pre>
+<pre><code>## No summary function supplied, defaulting to `mean_se()</code></pre>
+<p><img src="/prject-1_EDA_files/figure-html/unnamed-chunk-3-1.png" width="672" /></p>
+<pre class="r"><code>proj1_combined$schedule_season&lt;-as.factor(proj1_combined$schedule_season)
+proj1_combined%&gt;%
+  ggplot(aes(schedule_season,point_total))+
+  geom_boxplot()+
+  facet_wrap(~stadium_weather_type)+
+  theme(axis.text.x = element_text(angle=45, hjust=1),
+      legend.position=&quot;none&quot;)+xlab(&quot;Schedule Year&quot;)+
+  ylab(&quot;Total Points Scored&quot;)+ggtitle(&quot;Total Points Scored vs Year Across Weather Types&quot;)</code></pre>
+<p><img src="/prject-1_EDA_files/figure-html/unnamed-chunk-3-2.png" width="672" /></p>
+<pre class="r"><code>proj1_combined%&gt;%
+  ggplot(aes(schedule_season,over_under_line))+
+  geom_boxplot()+
+  facet_wrap(~stadium_weather_type)+
+  theme(axis.text.x = element_text(angle=45, hjust=1),
+      legend.position=&quot;none&quot;)+xlab(&quot;Schedule Year&quot;)+
+  ylab(&quot;Over Under Line&quot;)+ggtitle(&quot;Over Under Line vs Year Across Weather Types&quot;)</code></pre>
+<p><img src="/prject-1_EDA_files/figure-html/unnamed-chunk-3-3.png" width="672" /></p>
+<pre class="r"><code>proj1_combined%&gt;%
+  ggplot(aes(point_total, weather_temperature, color = over_under_hit ))+
+  geom_point(size=2)+xlab(&quot;Total Points Scored&quot;)+ylab(&quot;Temperature&quot;)+
+  ggtitle(&quot;Effect of Temperature on Points Scored&quot;)</code></pre>
+<p><img src="/prject-1_EDA_files/figure-html/unnamed-chunk-3-4.png" width="672" />
+The first bar chart shows that the over and under hit close to an equal number of times across different weather types, which again is the opposite of what I expected to see. The next two boxplots show that both the total points scored as well as the over under line remained relatively constant across different weather conditions between the 2007 and 2018 seasons. The last chart shows that there was no relation between the temperature during a game and the total amount of points scored.</p>
+<p>##PCA</p>
+<pre class="r"><code>proj.nums &lt;- proj1_combined%&gt;%select(-stadium_close)%&gt;%
+  select_if(is.numeric)%&gt;%scale
+proj_pca &lt;- princomp(proj.nums)
+summary(proj_pca, loadings = T)</code></pre>
+<pre><code>## Importance of components:
+##                           Comp.1    Comp.2    Comp.3    Comp.4    Comp.5
+## Standard deviation     1.4683216 1.1721931 1.0835737 0.9161227 0.8814369
+## Proportion of Variance 0.3080971 0.1963557 0.1677885 0.1199368 0.1110267
+## Cumulative Proportion  0.3080971 0.5044528 0.6722412 0.7921780 0.9032048
+##                            Comp.6       Comp.7
+## Standard deviation     0.82300868 6.322027e-08
+## Proportion of Variance 0.09679524 5.711602e-16
+## Cumulative Proportion  1.00000000 1.000000e+00
+## 
+## Loadings:
+##                     Comp.1 Comp.2 Comp.3 Comp.4 Comp.5 Comp.6 Comp.7
+## score_home           0.443  0.418  0.322  0.504                0.519
+## score_away           0.433 -0.166 -0.575 -0.377 -0.254         0.497
+## spread_favorite            -0.435 -0.463  0.631  0.440              
+## over_under_line      0.369 -0.122  0.236 -0.413  0.747  0.255       
+## weather_temperature  0.129 -0.583  0.294  0.149 -0.383  0.624       
+## weather_wind_mph    -0.233  0.466 -0.425                0.733       
+## point_total          0.640  0.194 -0.170  0.107 -0.170        -0.696</code></pre>
+<pre class="r"><code>proj1_combined%&gt;%mutate(PC1=proj_pca$scores[,1], PC2=proj_pca$scores[,2])%&gt;%
+  ggplot(aes(PC1,PC2,color=over_under_hit))+geom_point()+coord_fixed()+
+  ggtitle(&quot;PCA Scores Plot&quot;)</code></pre>
+<p><img src="/prject-1_EDA_files/figure-html/unnamed-chunk-4-1.png" width="672" /></p>
+<p>After running the summary of the principle components, I would keep the first four to five principle components because their cumulative proportion of variance is close to 80%. However,the above PCA plot shows there is no main component that accounts for the variation seen in my data.</p>
+<p>In conclusion, the exploration and tests run on my data did not support my initial prediction that worse weather conditions would result in lower NFL scores and a higher proportion of games falling below the over-under line. If I were to do it again, I might also look at the number of plays and play types run a team in each game to see how that would affect point totals.</p>
+</div>
+
+              <hr>
+              <div class="related-posts">
+                <h5>Related Posts</h5>
+                
+              </div>
+            </div>
+          </div>
+          <hr>
+        <div class="disqus">
+  <div id="disqus_thread"></div>
+  <script type="text/javascript">
+
+    (function() {
+      
+      
+      if (window.location.hostname == "localhost")
+        return;
+
+      var disqus_shortname = '';
+      var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+      dsq.src = '//' + disqus_shortname + '.disqus.com/embed.js';
+      (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+    })();
+  </script>
+  <noscript>Please enable JavaScript to view the <a href="http://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+  <a href="http://disqus.com/" class="dsq-brlink">comments powered by <span class="logo-disqus">Disqus</span></a>
+</div>
+        </div>
+      </div>
+      
+    </div>
+
+    
+    <footer>
+  <div id="footer">
+    <div class="container">
+      <p class="text-muted">&copy; All rights reserved. Powered by <a href="https://gohugo.io/">Hugo</a> and
+      <a href="http://www.github.com/nurlansu/hugo-sustain/">sustain</a> with ♥</p>
+    </div>
+  </div>
+</footer>
+<div class="footer"></div>
+
+
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.3/jquery.min.js"></script>
+
+<script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js" integrity="sha384-Tc5IQib027qvyjSMfHjOMaLkfuWVxZxUPnCJA7l2mCWNIpG9mGCD8wGNIcPD7Txa" crossorigin="anonymous"></script>
+<script src="/js/docs.min.js"></script>
+<script src="/js/main.js"></script>
+
+<script src="/js/ie10-viewport-bug-workaround.js"></script>
+
+
+    
+  </body>
+</html>
