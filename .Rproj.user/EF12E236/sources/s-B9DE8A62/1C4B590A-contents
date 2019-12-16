@@ -1,0 +1,8 @@
+name: Projects
+source:
+  - icon: fa fa-cog
+    description: project 1 exploratory data analysis!
+    url: prject-1_EDA.Rmd
+    
+  - icon: fa fa-cog
+    description: Project 2 modeling, infering and predicting!

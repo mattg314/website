@@ -8,9 +8,4 @@ tags:
 - projects
 title: Projects
 ---
-## <center> Projects </center>
-Here are some projects I have been working on:
-
-- [Project 1](/prject-1_EDA/): here is some stuff
-
-- [Project 2](/Project2/): 
+url: <a href="/prject-1_EDA/">Project 1</a>

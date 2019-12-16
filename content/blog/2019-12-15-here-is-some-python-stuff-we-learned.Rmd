@@ -1,0 +1,18 @@
+---
+title: Here is some python stuff we learned!
+author: Matt Gibson
+date: '2019-12-15'
+slug: here-is-some-python-stuff-we-learned
+categories: []
+tags: []
+description: ''
+---
+```{R}
+library(reticulate)
+```
+
+
+```{python,include=FALSE}
+import numpy as np
+2+2
+```
